@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>The Minimal React Webpack Babel Setup</title>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+    <style>
+        .station {
+            float:left;
+            padding-left: 20px;
+            list-style-type: none;
+            text-align: center;
+        }
+
+        .railway {
+            clear:both;
+        }
+
+        .railway-container::after {
+            clear:both;
+            content: '';
+            display: block;
+        }
+
+        .station-circle {
+            background-color: white;
+            display: inline-block;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            text-align: center;
+            border: 2px solid;
+
+        }
+
+        .train {
+            display: inline-block;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            text-align: center;
+            border: 2px solid;
+            list-style-type: none;
+            margin-bottom: 3.7px;
+        }
+
+        .btn {
+            padding: 5px;
+            font-size: 15px;
+            margin-left: 20px;
+            margin-top: 30px;
+        }
+
+    </style>
+</head>
+<body>
+<div id="app"></div>
+<script src="/bundle.js"></script>
+</body>
+</html>
