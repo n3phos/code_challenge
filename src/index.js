@@ -7,10 +7,8 @@ import store from "./store";
 import { moveTrains, assignTrainToRailway, updatePassengers } from "./actions";
 
 window.store = store;
-window.moveTrains = moveTrains;
 
 const title = 'Coding challenge';
-
 
 const mapStateToProps = state => {
     return state;
