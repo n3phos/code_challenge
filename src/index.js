@@ -1,7 +1,42 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
+import { Provider } from "react-redux";
+import { connect } from "react-redux";
+
+import store from "./store";
+import { moveTrains, assignTrainToRailway, updatePassengers } from "./actions";
+
+window.store = store;
+window.moveTrains = moveTrains;
 
 const title = 'Coding challenge';
+
+
+const mapStateToProps = state => {
+    return state;
+};
+
+const mapDispatchToProps = dispatch => {
+    return {
+        assignTrainToRailway: (train) => dispatch(assignTrainToRailway(train)),
+        updatePassengers: (trains) => dispatch(updatePassengers(trains)),
+        moveTrains: (trains) => dispatch(moveTrains(trains))
+    };
+};
+
+
+class App extends React.Component {
+
+    constructor(props) {
+        super(props);
+    };
+
+    render() {
+        return (
+            <ConnectedTrainControl/>
+        )
+    }
+}
 
 class TrainControl extends React.Component {
 
@@ -9,69 +44,31 @@ class TrainControl extends React.Component {
 
         super(props);
 
-        this.state = {
-            junctions: [
-                [[1,2],[2,2]], // between railway 1 and 2, junction at 2
-                [[1,3],[3,4]], // between railway 1 and 3, junction at 3,4
-                [[2,3],[3,2]], // between railway 2 and 3, junction at 3,2
-            ],
-            railways: {
-                1: 6, // number of stations
-                2: 5,
-                3: 8
-            },
-            trains: [
-                {
-                    id: 1,
-                    passengers: 10,
-                    terminusStation: 0,
-                    station: 0,
-                    reverseDirection: false,
-                    canMove: true,
-                    color: 'deepskyblue'
-                },
-                {
-                    id: 2,
-                    passengers: 20,
-                    terminusStation: 0,
-                    station: 0,
-                    reverseDirection: false,
-                    canMove: true,
-                    color: 'green'
-                 },
-                {
-                    id: 3,
-                    passengers: 30,
-                    terminusStation: 0,
-                    station: 0,
-                    reverseDirection: false,
-                    canMove: true,
-                    color: 'cyan'
-                }
-            ]
-        };
-
         this.handleTrains = this.handleTrains.bind(this);
         this.handlePassengers = this.handlePassengers.bind(this);
 
-        let trains = this.state.trains;
+        Object.filter = (obj, predicate) =>
+            Object.keys(obj)
+                .filter( key => predicate(obj[key]) )
+                .reduce( (res, key) => (res[key] = obj[key], res), {} );
 
-        trains.forEach(train => {
-            this.assignTrainToRailway(train, train.id);
-        });
     }
 
-    assignTrainToRailway(train) {
-        let railwayLength = this.state.railways[train.id];
-        train.terminusStation = railwayLength -1;
+    componentDidMount() {
+        let trains = this.props.trains;
+
+        for(let key in trains) {
+            this.props.assignTrainToRailway(trains[key]);
+        }
     }
 
     render() {
+
         return(
             <div>
                 <div>
                     <Junctions
-                        junctions = {this.state.junctions}
+                        junctions = {this.props.junctions}
                     />
                 </div>
                 <div className="railway-container">
@@ -87,13 +84,13 @@ class TrainControl extends React.Component {
 
     renderRailways() {
         let railwayComponents = [];
-        for(let railway in this.state.railways) {
+        for(let railway in this.props.railways) {
             railwayComponents.push(
                 <Railway
-                    railwayLength={this.state.railways[railway]}
+                    railwayLength={this.props.railways[railway]}
                     railwayId={railway}
                     key={railway}
-                    train={this.state.trains[railway-1]}
+                    train={this.props.trains[railway]}
                 />
             )
         }
@@ -101,20 +98,16 @@ class TrainControl extends React.Component {
     }
 
     handleTrains() {
-        // make a copy of state
-        let state = JSON.parse(JSON.stringify(this.state));
 
-        let junctions = this.state.junctions;
-
-        let trains = state.trains;
+        let junctions = this.props.junctions;
+        let trains = this.props.trains;
         let mapTrainToNextStation = {};
 
         // reset the trains
-        trains.map(train => train.canMove = true);
-
-        trains.forEach(train => {
-            mapTrainToNextStation[train.id] = this.trainWouldArriveAtStation(train);
-        });
+        for(let key in trains) {
+            trains[key].canMove = true;
+            mapTrainToNextStation[trains[key].id] = this.trainWouldArriveAtStation(trains[key]);
+        }
 
         let trainIsWaiting = false;
 
@@ -127,8 +120,8 @@ class TrainControl extends React.Component {
             const trainOneId = trainIds[0];
             const trainTwoId = trainIds[1];
 
-            let trainOne = trains[trainOneId-1];
-            let trainTwo = trains[trainTwoId-1];
+            let trainOne = trains[trainOneId];
+            let trainTwo = trains[trainTwoId];
 
             const trainOneNextStation = mapTrainToNextStation[trainOneId];
             const trainTwoNextStation = mapTrainToNextStation[trainTwoId];
@@ -154,8 +147,8 @@ class TrainControl extends React.Component {
                 const trainOneId = trainIds[0];
                 const trainTwoId = trainIds[1];
 
-                let trainOne = trains[trainOneId - 1];
-                let trainTwo = trains[trainTwoId - 1];
+                let trainOne = trains[trainOneId];
+                let trainTwo = trains[trainTwoId];
 
                 const trainOneNextStation = mapTrainToNextStation[trainOneId];
                 const trainTwoNextStation = mapTrainToNextStation[trainTwoId];
@@ -170,21 +163,26 @@ class TrainControl extends React.Component {
             }
         }
 
-        trains.filter(train => train.canMove).forEach(train => this.move(train));
+        for(let key in trains) {
+            if(trains[key].canMove) {
+                this.move(trains[key]);
+            }
+        }
+
         console.log("_________________________________________");
 
-        this.setState({trains: trains});
+        this.props.moveTrains(trains);
     }
 
     handlePassengers() {
-        let trains = JSON.parse(JSON.stringify(this.state.trains));
+        let trains = this.props.trains;
         const randomPassengersForTrain = this.randomPassengers();
 
-        trains.map((train, index) => {
-            train.passengers = randomPassengersForTrain[index];
-        });
+        for(let key in trains) {
+            trains[key].passengers = randomPassengersForTrain[key-1];
+        }
 
-        this.setState({trains: trains});
+        this.props.updatePassengers(trains);
     }
 
     wait(train, train2) {
@@ -236,6 +234,7 @@ class TrainControl extends React.Component {
     }
 }
 
+const ConnectedTrainControl = connect(mapStateToProps, mapDispatchToProps)(TrainControl);
 
 const Junctions = (props) => {
     const renderJunctions = (junctions) => {
@@ -331,7 +330,9 @@ const Railway = (props) => {
 
 
 ReactDOM.render(
-   <TrainControl/>,
+    <Provider store={store}>
+        <App />
+    </Provider>,
     document.getElementById('app')
 );
 
