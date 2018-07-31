@@ -6,7 +6,7 @@ module.exports = {
         './src/index.js'
     ],
     output: {
-        path: '/Users/nephos/workspace/react/list/dist',
+        path: __dirname + '/dist',
         publicPath: '/',
         filename: 'bundle.js'
     },
